@@ -1,0 +1,10 @@
+Code Name
+O Olfactory_bulb
+H Hypothalamus
+I Hippocampus
+S Striatum
+C Cerebellum
+T Brainstem
+X Prefrontal_cortex
+R Raphe_nuclei
+W Whole_brain

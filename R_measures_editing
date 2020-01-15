@@ -1,0 +1,13 @@
+args <- commandArgs(TRUE)
+
+CUTOFF=20
+data=read.table(paste('Quality_in_',args[1],'.dat',sep=''),header=T)
+genomic_As=read.table('Adenines_in_genomic_sequence.dat')
+memo=c()
+for (x in genomic_As$V1)
+{
+nt=data[,1+x]
+q=data[,151+x]
+memo=rbind(memo,c(x,length(nt[q>=CUTOFF]),length(nt[q>=CUTOFF & nt=='A']),length(nt[q>=CUTOFF & nt=='C']),length(nt[q>=CUTOFF & nt=='G']),length(nt[q>=CUTOFF & nt=='T'])))
+}
+write.csv(memo,paste('Editing_data_',args[1],'.csv',sep=''))

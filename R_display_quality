@@ -1,0 +1,30 @@
+args <- commandArgs(TRUE)
+
+data=read.table(paste('Quality_in_',args[1],'.dat',sep=''),header=T)
+pdf(paste('Quality_scores_in_amplicon_R2_reads_',args[1],'.pdf',sep=''),width=12,height=5)
+#boxplot(data[,152:301],axes=F,xlab='Position in read (nt)',ylab='Quality score',ylim=c(0,45)) # Too slow, too big...
+plot(0,0,xlim=c(0,150),ylim=c(0,45),xlab='Position in read (nt)',ylab='Quality score',ty='n',axes=F)
+edit_nt=c(67,69,73,74,79)
+edit_name=c('A','B','E','C','D')
+for (edit in c(1:5))
+{
+lines(c(edit_nt[edit],edit_nt[edit]),c(0,41),lwd=4,col='pink')
+text(edit_nt[edit],5+2*edit,edit_name[edit])
+}
+memo=c()
+for (column in 152:301) memo=cbind(memo,quantile(data[,column],c(0.25,0.5,0.75)))
+par(new=T)
+plot(memo[2,],ty='l',xlim=c(0,150),ylim=c(0,45),xlab='',ylab='',axes=F)
+par(new=T)
+plot(memo[1,],ty='l',lty=2,xlim=c(0,150),ylim=c(0,45),xlab='',ylab='',axes=F)
+par(new=T)
+plot(memo[3,],ty='l',lty=2,xlim=c(0,150),ylim=c(0,45),xlab='',ylab='',axes=F)
+axis(1,labels=10*(0:15),at=10*(0:15))
+axis(2)
+lines(c(0,150),c(20,20),col='red',lty=3)
+text(3,memo[1,1],'25th percentile')
+text(3,memo[2,1],'50th percentile')
+text(3,memo[3,1],'75th percentile')
+text(140,20,'Cutoff',col='red')
+dev.off()
+
