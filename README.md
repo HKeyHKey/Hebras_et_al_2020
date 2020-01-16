@@ -60,7 +60,7 @@ Resulting files: 'Editing_data_*.csv', stored in archive 'Series_1_editing_data.
 
 (can be launched in parallel on 8 processors instead of launching them sequentially with the "for" loop)
 
-### 1.5. Extracting frequencies of A-I edition:
+### 2.5. Extracting frequencies of A-I edition:
 
 ``for code in d e h m M N P w;do ./Script_measure_series_2.sh $code > nohup_$code'.txt';sleep 3;done``
 
