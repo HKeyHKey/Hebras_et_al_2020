@@ -94,7 +94,7 @@ Resulting files: 'Values_for_plotting_editing_frequency_*.csv', stored in archiv
 
 ## 3. Analysis of combinations of site edition (Figure 3C):
 
-### 3.1. File preparation for the first series of samples (SRA accession #???):
+### 3.1. File preparation for the first series of samples (SRA accession #PRJNA603264):
 
 ``cd ../First_series;for i in `seq 1 8`;do ./Script_editing_combination_measure.sh sample_list_$i > nohup_ter_$i'.out';sleep 3;done``
 
@@ -105,7 +105,7 @@ N
 s|^\[1\] *"\(.*\)"\n\[1\] *\(.*\)|\1 \2|
 }' $f >> tmp_$f;done``
 
-### 3.2. File preparation for the second series of samples (SRA accession #???):
+### 3.2. File preparation for the second series of samples (SRA accession #PRJNA603261):
 
 ``cd ../Second_series;for i in `seq 1 8`;do ./Script_editing_combination_measure.sh sample_list_$i > nohup_ter_$i'.out';sleep 3;done``
 
@@ -130,4 +130,4 @@ Files 'Combinations_*.dat' are stored in archive 'Editing_combination_counts_rep
 
 ``R CMD BATCH R_commands_combination_analysis``
 
-Resulting file: 'Combination_comparisons.csv', used in Figre 3C.
+Resulting file: 'Combination_comparisons.csv', used in Figure 3C.
