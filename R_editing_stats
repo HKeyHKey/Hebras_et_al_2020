@@ -1,0 +1,42 @@
+args <- commandArgs(TRUE)
+
+all_files=list.files(pattern=paste('Editing_data_',args[1],sep=''))
+mut=c()
+wt=c()
+for (f in all_files)
+{
+if ((length(grep(paste('Editing_data_',args[1],'[0-9]*k',sep=''),f))>0) | (length(grep(paste('Editing_data_',args[1],'[0-9]*K',sep=''),f))>0))
+{
+mut=append(mut,f)
+} else if (length(grep(paste('Editing_data_',args[1],'[0-9]',sep=''),f))>0) wt=append(wt,f)
+}
+
+G_wt=c();G_mut=c()
+
+for (f in wt)
+{
+data=read.csv(f)
+G_wt=append(G_wt,(data$Number.of.reads.with.G/data$Number.of.reads)[c(3,4,5,6,7)]*100) #These are the locations of edited adenines among the 21 adenines in the analyzed segment
+}
+for (f in mut)
+{
+data=read.csv(f)
+G_mut=append(G_mut,(data$Number.of.reads.with.G/data$Number.of.reads)[c(3,4,5,6,7)]*100) #These are the locations of edited adenines among the 21 adenines in the analyzed segment
+}
+
+wt_values=t(array(G_wt,dim=c(5,length(G_wt)/5)))
+mut_values=t(array(G_mut,dim=c(5,length(G_mut)/5)))
+colnames(wt_values)=c('A','B','E','C','D')
+colnames(mut_values)=c('A','B','E','C','D')
+
+std.error <- function(x) sd(x)/sqrt(length(x))
+
+area_names=read.table('Dissected_areas.txt',header=T)
+area=area_names$Name[area_names==args[1]]
+area=gsub('_',' ',area)
+m_wt=apply(wt_values,2,mean)
+se_wt=apply(wt_values,2,std.error)
+m_mut=apply(mut_values,2,mean)
+se_mut=apply(mut_values,2,std.error)
+
+write.csv(rbind(m_wt,se_wt,m_mut,se_mut),paste('Values_for_plotting_editing_frequency_',args[1],'.csv',sep=''))

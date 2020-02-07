@@ -1,0 +1,94 @@
+args <- commandArgs(TRUE)
+
+all_files=list.files(pattern=paste('Editing_data_',args[1],sep=''))
+mut=c()
+wt=c()
+for (f in all_files)
+{
+if ((length(grep(paste('Editing_data_',args[1],'k',sep=''),f))>0) | (length(grep(paste('Editing_data_',args[1],'K',sep=''),f))>0))
+{
+mut=append(mut,f)
+} else wt=append(wt,f)
+}
+
+G_wt=c();G_mut=c()
+
+pdf(paste('Editing_frequencies_in_',args[1],'.pdf',sep=''),width=8,height=6)
+plot(0,0,xlim=1090+c(60,140),ylim=c(0,100),xlab='Position in mRNA (NM_008312.4)',ylab='Nucleotide frequency (%)',ty='b')
+lines(c(1090+67,1090+67),c(0,100),lwd=5,col='gray87')
+lines(c(1090+69,1090+69),c(0,100),lwd=5,col='gray87')
+lines(c(1090+73,1090+73),c(0,100),lwd=5,col='gray87')
+lines(c(1090+74,1090+74),c(0,100),lwd=5,col='gray87')
+lines(c(1090+79,1090+79),c(0,100),lwd=5,col='gray87')
+
+for (f in wt)
+{
+color='blue'
+data=read.csv(f)
+par(new=T)
+plot(1090+data$V1,data$V4/data$V2*100,pch=0,col=color,lwd=1,xlim=1090+c(60,140),ylim=c(0,100),axes=F,xlab='',ylab='') # C
+par(new=T)
+plot(1090+data$V1,data$V5/data$V2*100,pch=1,col=color,lwd=1,xlim=1090+c(60,140),ylim=c(0,100),axes=F,xlab='',ylab='') # G
+par(new=T)
+plot(1090+data$V1,data$V6/data$V2*100,pch=2,col=color,lwd=1,xlim=1090+c(60,140),ylim=c(0,100),axes=F,xlab='',ylab='') # T
+G_wt=append(G_wt,(data$V5/data$V2)[c(3,4,5,6,7)]*100) #These are the locations of edited adenines among the 21 adenines in the analyzed segment
+}
+for (f in mut)
+{
+color='red'
+data=read.csv(f)
+par(new=T)
+plot(1090+data$V1,data$V4/data$V2*100,pch=0,col=color,lwd=1,xlim=1090+c(60,140),ylim=c(0,100),axes=F,xlab='',ylab='') # C
+par(new=T)
+plot(1090+data$V1,data$V5/data$V2*100,pch=1,col=color,lwd=1,xlim=1090+c(60,140),ylim=c(0,100),axes=F,xlab='',ylab='') # G
+par(new=T)
+plot(1090+data$V1,data$V6/data$V2*100,pch=2,col=color,lwd=1,xlim=1090+c(60,140),ylim=c(0,100),axes=F,xlab='',ylab='') # T
+G_mut=append(G_mut,(data$V5/data$V2)[c(3,4,5,6,7)]*100) #These are the locations of edited adenines among the 21 adenines in the analyzed segment
+}
+
+legend(1090+120,80,c('C','G','T','wt','mutant'),pch=c(0,1,2,16,16),col=c('black','black','black','blue','red'))
+dev.off()
+wt_values=t(array(G_wt,dim=c(5,length(G_wt)/5)))
+mut_values=t(array(G_mut,dim=c(5,length(G_mut)/5)))
+colnames(wt_values)=c('A','B','E','C','D')
+colnames(mut_values)=c('A','B','E','C','D')
+sink(paste('Editing_values_',args[1],'.txt',sep=''))
+print(as.data.frame(wt_values))
+print(as.data.frame(mut_values))
+r_mean=c();r_median=c();p=c()
+for (site in c('A','B','E','C','D'))
+{
+r_mean=append(r_mean,mean(mut_values[,site])/mean(wt_values[,site]))
+r_median=append(r_median,median(mut_values[,site])/median(wt_values[,site]))
+p=append(p,wilcox.test(mut_values[,site],wt_values[,site])$p.value)
+}
+print(r_mean)
+print(r_median)
+print(p)
+sink()
+
+std.error <- function(x) sd(x)/sqrt(length(x))
+
+area_names=read.table('Dissected_areas.txt',header=T)
+area=area_names$Name[area_names==args[1]]
+area=gsub('_',' ',area)
+m_wt=apply(wt_values,2,mean)
+se_wt=apply(wt_values,2,std.error)
+m_mut=apply(mut_values,2,mean)
+se_mut=apply(mut_values,2,std.error)
+range=max(pretty(c(0,max(c(m_wt+se_wt,m_mut+se_mut)))))
+pdf(paste('Editing_histogram_',args[1],'.pdf',sep=''),width=6,height=6)
+par(lwd=1.5)
+barplot(rbind(m_wt,m_mut),beside=T,col=c('blue','red'),ylab='% editing',xlab='Editing site',main=area,ylim=c(0,range))
+x=1.5+3*c(0:4)
+y_lo=m_wt-se_wt
+y_hi=m_wt+se_wt
+for (i in 1:5) arrows(x[i],y_lo[i],x[i],y_hi[i],code=3,angle=90,length=.1)
+x=2.5+3*c(0:4) 
+y_lo=m_mut-se_mut
+y_hi=m_mut+se_mut
+for (i in 1:5) arrows(x[i],y_lo[i],x[i],y_hi[i],code=3,angle=90,length=.1)
+legend(7,max(c(m_wt,m_mut)),c('wt','mutant'),col=c('blue','red'),pch=15)
+dev.off()
+
+write.csv(rbind(m_wt,se_wt,m_mut,se_mut),paste('Values_for_plotting_editing_frequency_',args[1],'.csv',sep=''))

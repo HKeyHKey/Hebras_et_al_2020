@@ -1,0 +1,50 @@
+area_names=read.table('Dissected_areas.txt',header=T)
+
+feature=c()
+t_pval=c()
+w_pval=c()
+norm_wt=c()
+norm_mut=c()
+r_mean=c()
+r_median=c()
+
+for (area in area_names$Code)
+{
+data=read.csv(paste('Significativity_combinations_',area,'.csv',sep=''))
+feature=append(feature,paste(area,'_',data$Combination,sep=''))
+t_pval=append(t_pval,data$pval_t_test)
+w_pval=append(w_pval,data$pval_Wilcoxon_test)
+norm_wt=append(norm_wt,data$pval_Shapiro_Wilk_test_wt)
+norm_mut=append(norm_mut,data$pval_Shapiro_Wilk_test_mut)
+r_mean=append(r_mean,data$r_mean)
+r_median=append(r_median,data$r_median)
+}
+
+if ((length(norm_wt[norm_wt<0.05])/length(norm_wt)>0.05) | (length(norm_mut[norm_mut<0.05])/length(norm_mut)>0.05))
+{
+test='Wilcoxon test'
+p_adj=p.adjust(w_pval,method='fdr')
+} else
+{
+test='t-test'
+p_adj=p.adjust(t_pval,method='fdr')
+}
+
+truc=list(feature,r_mean,r_median,p_adj)
+names(truc)=c('Feature','mut/wt (means)','mut/wt (medians)',paste(test,' adjusted p-value',sep=''))
+all=as.data.frame(truc)
+
+x_range=max(pretty(c(0,exp(max(abs(log(range(all$mut.wt..means.[is.finite(all$mut.wt..means.)]))))))))
+pdf('Volcano_plot_combinations.pdf',width=6,height=6)
+plot(all$mut.wt..means.,all$Wilcoxon.test.adjusted.p.value,log='xy',xlim=c(1/x_range,x_range),ty='n',xlab='mean(mutant)/mean(wt)',ylab='Adjusted p-value')
+lines(c(1/x_range,x_range),c(.05,.05),col='red',lty=3)
+lines(c(1,1),c(1e-16,1),col='black',lty=3)
+par(new=T)
+plot(all$mut.wt..means.,all$Wilcoxon.test.adjusted.p.value,log='xy',xlim=c(1/x_range,x_range),axes=F,xlab='',ylab='')
+labels=all$Feature[all$Wilcoxon.test.adjusted.p.value<0.05]
+for (i in 1:length(area_names$Code))
+labels=sub(paste(area_names$Code[i],'_',sep=''),paste(area_names$Name[i],' ',sep=''),labels)
+labels=gsub('_',' ',labels)
+text(all$mut.wt..means.[all$Wilcoxon.test.adjusted.p.value<0.05],all$Wilcoxon.test.adjusted.p.value[all$Wilcoxon.test.adjusted.p.value<0.05],labels)
+dev.off()
+write.csv(all,'Data_for_combination_volcano_plot.csv')

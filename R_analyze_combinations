@@ -1,0 +1,36 @@
+args <- commandArgs(TRUE)
+
+if (args[1] == 'W')
+{
+nb_samples=5
+} else nb_samples=12
+
+data=read.table(paste('Editing_combinations_in_area_',args[1],'.dat',sep=''),header=T)
+percent=c()
+for (col in 2:(2*nb_samples+1)) percent=cbind(percent,data[,col]/sum(data[,col])*100)
+if (nb_samples==5)
+{
+truc=list(data$Combination,percent[,1],percent[,2],percent[,3],percent[,4],percent[,5],percent[,6],percent[,7],percent[,8],percent[,9],percent[,10])
+} else truc=list(data$Combination,percent[,1],percent[,2],percent[,3],percent[,4],percent[,5],percent[,6],percent[,7],percent[,8],percent[,9],percent[,10],percent[,11],percent[,12],percent[,13],percent[,14],percent[,15],percent[,16],percent[,17],percent[,18],percent[,19],percent[,20],percent[,21],percent[,22],percent[,23],percent[,24])
+
+names(truc)=colnames(data)
+percent_dataframe=as.data.frame(truc)
+normality_pval_wt=c()
+normality_pval_mut=c()
+pval_t_test=c()
+pval_Wilcoxon_test=c()
+r_mean=c()
+r_median=c()
+for (i in 1:length(percent_dataframe$Combination))
+{
+normality_pval_wt=append(normality_pval_wt,shapiro.test(as.numeric(percent_dataframe[i,2:(nb_samples+1)]))$p.value)
+normality_pval_mut=append(normality_pval_mut,shapiro.test(as.numeric(percent_dataframe[i,(nb_samples+2):(2*nb_samples+1)]))$p.value)
+pval_t_test=append(pval_t_test,t.test(as.numeric(percent_dataframe[i,2:(nb_samples+1)]),as.numeric(percent_dataframe[i,(nb_samples+2):(2*nb_samples+1)]))$p.value)
+pval_Wilcoxon_test=append(pval_Wilcoxon_test,wilcox.test(as.numeric(percent_dataframe[i,2:(nb_samples+1)]),as.numeric(percent_dataframe[i,(nb_samples+2):(2*nb_samples+1)]))$p.value)
+r_mean=append(r_mean,mean(as.numeric(percent_dataframe[i,(nb_samples+2):(2*nb_samples+1)]))/mean(as.numeric(percent_dataframe[i,2:(nb_samples+1)])))
+r_median=append(r_median,median(as.numeric(percent_dataframe[i,(nb_samples+2):(2*nb_samples+1)]))/median(as.numeric(percent_dataframe[i,2:(nb_samples+1)])))
+}
+
+truc2=list(data$Combination,r_mean,r_median,pval_t_test,pval_Wilcoxon_test,normality_pval_wt,normality_pval_mut)
+names(truc2)=c('Combination','r_mean','r_median','pval_t_test','pval_Wilcoxon_test','pval_Shapiro_Wilk_test_wt','pval_Shapiro_Wilk_test_mut')
+write.csv(as.data.frame(truc2),paste('Significativity_combinations_',args[1],'.csv',sep=''))

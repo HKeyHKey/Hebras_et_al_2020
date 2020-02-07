@@ -1,0 +1,39 @@
+args <- commandArgs(TRUE)
+
+CUTOFF=20
+data=read.table(paste('Quality_in_',args[1],'.dat',sep=''),header=T)
+select=c(1:length(data$Read_ID))[data$q_67>=CUTOFF & data$q_69>=CUTOFF & data$q_73>=CUTOFF & data$q_74>=CUTOFF & data$q_79>=CUTOFF]
+
+count=rep(0,32)
+for (i in select)
+{
+score=1
+if (data$nt_67[i]=='G') score=score+1
+if (data$nt_69[i]=='G') score=score+2
+if (data$nt_73[i]=='G') score=score+4
+if (data$nt_74[i]=='G') score=score+8
+if (data$nt_79[i]=='G') score=score+16
+count[score]=count[score]+1
+}
+
+decode <- function(x) {
+decoded=''
+for (i in 4:0)
+{
+if (x>2^i)
+{
+decoded=paste('G',decoded,sep='')
+x=x-2^i
+} else
+decoded=paste('A',decoded,sep='')
+}
+decoded
+}
+
+sink(paste('Editing_combinations_in_',args[1],'.txt',sep=''))
+for (i in 1:32)
+{
+print(decode(i))
+print(count[i])
+}
+sink()
