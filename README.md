@@ -1,5 +1,5 @@
 # Hebras_et_al_2020
-Scripts and intermediary data for analyses published in Figure 3 of Hebras et al. (2020).
+Scripts and intermediary data for analyses published in Figure 3 and Supplementary Figure 2 of Hebras et al. (2020).
 
 Two series of samples were prepared and sequenced 9 months apart (see file 'Dissected_area_nomenclature_in_Figure3.txt' for the assignation of the samples shown in Figure 3 into these two series).
 
@@ -131,3 +131,15 @@ Files 'Combinations_*.dat' are stored in archive 'Editing_combination_counts_rep
 ``R CMD BATCH R_commands_combination_analysis``
 
 Resulting file: 'Combination_comparisons.csv', used in Figure 3C.
+
+## 4. ANOVA for the effect of development, brain area, editing site identity, and genotype (for Fig. S2):
+
+### 4.1. Nomenclature homogenization:
+
+``for code in O H I S C T X R ME wb e16 e16h P1H e16c e16i hypo del32H del32P1H mCPP Nacl;do for f in `ls Editing_data_$code''[0-9kK]* | grep -v Editing_data_$code''[0-9]*[kK]`;do replicate=`echo $f | sed -e 's|^Editing_data_'$code'||' -e 's|_.*||' -e 's|[kK]||'`;mv $f Site_by_site_$code'_wt_'$replicate'.csv';done;done;for code in O H I S C T X R ME wb e16 e16h P1H e16c e16i hypo del32H del32P1H mCPP Nacl;do for f in `ls Editing_data_$code''[0-9kK]* | grep Editing_data_$code''[0-9]*[kK]`;do replicate=`echo $f | sed -e 's|^Editing_data_'$code'||' -e 's|_.*||' -e 's|[kK]||'`;mv $f Site_by_site_$code'_mut_'$replicate'.csv';done;done``
+
+Resulting files ('Site_by_site_*.csv') can be found in archive 'Data_for_Fig_S2.tar.bz2'.
+
+### 4.2 ANOVA:
+
+``R CMD BATCH R_editing_in_development``
