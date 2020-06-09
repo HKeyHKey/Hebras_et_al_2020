@@ -1,0 +1,73 @@
+area_names=read.table('Dissected_areas_all.txt',header=T)
+
+library(plotrix)
+
+sample_list=list(c('e16','wb'),c('e16c','X'),c('e16h','P1H','H'),c('e16i','I'))
+editing=c();genotype=c();site=c();stage=c();area=c()
+for (tissue in 1:length(sample_list))
+{
+for (code in sample_list[[tissue]])
+{
+wt=list.files(pattern=paste('Site_by_site_',code,'_wt_',sep=''))
+mut=list.files(pattern=paste('Site_by_site_',code,'_mut_',sep=''))
+G_wt=c();G_mut=c()
+for (f in wt)
+{
+data=read.csv(f)
+G_wt=append(G_wt,(data$Number.of.reads.with.G/data$Number.of.reads)[c(3,4,5,6,7)]*100) #These are the locations of edited adenines among the 21 adenines in the analyzed segment
+}
+for (f in mut)
+{
+data=read.csv(f)
+G_mut=append(G_mut,(data$Number.of.reads.with.G/data$Number.of.reads)[c(3,4,5,6,7)]*100) #These are the locations of edited adenines among the 21 adenines in the analyzed segment
+}
+wt_values=t(array(G_wt,dim=c(5,length(G_wt)/5)))
+mut_values=t(array(G_mut,dim=c(5,length(G_mut)/5)))
+colnames(wt_values)=c('A','B','E','C','D')
+colnames(mut_values)=c('A','B','E','C','D')
+editing=append(editing,c(wt_values,mut_values))
+genotype=append(genotype,c(rep('wt',nrow(wt_values)*ncol(wt_values)),rep('mut',nrow(mut_values)*ncol(mut_values))))
+site=append(site,c(rep('A',nrow(wt_values)),rep('B',nrow(wt_values)),rep('E',nrow(wt_values)),rep('C',nrow(wt_values)),rep('D',nrow(wt_values)),rep('A',nrow(mut_values)),rep('B',nrow(mut_values)),rep('E',nrow(mut_values)),rep('C',nrow(mut_values)),rep('D',nrow(mut_values))))
+if ((code=='e16') | (code=='e16c') | (code=='e16h') | (code=='e16i')) st='embryonic'
+if ((code=='wb') | (code=='X') | (code=='H') | (code=='I')) st='adult'
+if (code=='P1H') st='neonate'
+stage=append(stage,c(rep(st,nrow(wt_values)*ncol(wt_values)+nrow(mut_values)*ncol(mut_values))))
+area=append(area,c(rep(tissue,nrow(wt_values)*ncol(wt_values)+nrow(mut_values)*ncol(mut_values))))
+}
+}
+area=as.factor(area)
+anova(lm(log(editing)~site+area+genotype+stage)) #Result: no discerned effect of genotype; significant effects of site location, brain area and developmental stage
+anova(lm((editing)~site+area+stage))
+anova(lm((editing)~site*area+stage))
+anova(lm((editing)~site+area*stage))
+anova(lm((editing)~site*stage+area))
+# Some significant interactions between factors, but it is going to become messy...
+sink('ANOVA_genotype_site_area_stage.txt')
+print(anova(lm(log(editing)~site+area+genotype+stage)))
+sink()
+for_plot=read.csv('For_plotting_site_by_site.csv')
+for (tissue in 1:length(sample_list))
+{
+tissue_name=c('Whole_brain','Cortex','Hypothalamus','Hippocampus')[tissue]
+pdf(paste('Development_',tissue_name,'.pdf',sep=''),width=15,height=5)
+par(mfrow=c(1,5))
+for (site in 1:5)
+{
+y_range=range(pretty(c(0,max(c(for_plot[[site+4]][is.element(for_plot$Code,sample_list[[tissue]]) & for_plot$Variable=='m_wt']+for_plot[[site+4]][is.element(for_plot$Code,sample_list[[tissue]]) & for_plot$Variable=='se_wt'],for_plot[[site+4]][is.element(for_plot$Code,sample_list[[tissue]]) & for_plot$Variable=='m_mut']+for_plot[[site+4]][is.element(for_plot$Code,sample_list[[tissue]]) & for_plot$Variable=='se_mut'])))))
+plot(1,1,ty='n',xlim=c(0,4),ylim=y_range,xlab='',ylab='Percentage editing',axes=F,main=paste('Site',c('A','B','E','C','D')[site]))
+for (code in sample_list[[tissue]])
+{
+if ((code=='e16') | (code=='e16c') | (code=='e16h') | (code=='e16i')) absc=1
+if ((code=='wb') | (code=='X') | (code=='H') | (code=='I')) absc=3
+if (code=='P1H') absc=2
+par(new=T)
+plotCI(absc,for_plot[[site+4]][for_plot$Code==code & for_plot$Variable=='m_wt'],for_plot[[site+4]][for_plot$Code==code & for_plot$Variable=='se_wt'],col='black',axes=F,xlab='',ylab='',xlim=c(0,4),ylim=y_range)
+par(new=T)
+plotCI(absc,for_plot[[site+4]][for_plot$Code==code & for_plot$Variable=='m_mut'],for_plot[[site+4]][for_plot$Code==code & for_plot$Variable=='se_mut'],col='red',axes=F,xlab='',ylab='',xlim=c(0,4),ylim=y_range)
+}
+axis(2)
+axis(1,labels=c('Embryo','Neonate','Adult'),at=c(1:3))
+if (site==1) legend('topleft',c('WT','KO'),col=c('black','red'),pch='_')
+}
+dev.off()
+}
