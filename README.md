@@ -1,9 +1,9 @@
 # Hebras_et_al_2020
-Scripts and intermediary data for analyses published in Figure 3 and Supplementary Figure 2 of Hebras et al. (2020).
+Scripts and intermediary data for analyses published in Figure 3, 4, 5, 6 and Supplementary Figure 2 of Hebras et al. (2020).
 
 Two series of samples were prepared and sequenced 9 months apart (see file 'Dissected_area_nomenclature_in_Figure3.txt' for the assignation of the samples shown in Figure 3 into these two series).
 
-## 1. Analysis of the first series of samples (SRA accession #PRJNA603264):
+## 1. Fig. 3: Analysis of the first series of samples (SRA accession #PRJNA603264):
 
 ``mkdir First_series;cd First_series``
 
@@ -48,7 +48,7 @@ Resulting files: 'Editing_data_*.csv', stored in archive 'Series_1_editing_data.
 Resulting files: 'Values_for_plotting_editing_frequency_*.csv', stored in archive 'Series_1_editing_frequency_site_by_site.tar.bz2'. Values for olfactory bulb (sample code: O), hypothalamus (sample code: H), hippocampus (sample code: I), striatum (sample code: S), cerebellum (sample code: C), brainstem (sample code: T), prefrontal cortex (sample code: X) and raphe nuclei (sample code: R) were used to plot Figure 3B.
 
 
-## 2. Analysis of the second series of samples (SRA accession #PRJNA603261):
+## 2. Fig. 3 and S2: Analysis of the second series of samples (SRA accession #PRJNA603261):
 
 ``mkdir ../Second_series;cd ../Second_series``
 
@@ -143,3 +143,7 @@ Resulting files ('Site_by_site_*.csv') can be found in archive 'Data_for_Fig_S2.
 ### 4.2 ANOVA:
 
 ``R CMD BATCH R_editing_in_development``
+
+## 5. ANOVA for Fig. 4 (panels A to F), Fig. 5 (panels C to K) and Fig. 6 (panels A to G):
+
+``for f in `ls Fig*.csv`;do Rscript R_commands_ANOVA_histograms $f;done``
