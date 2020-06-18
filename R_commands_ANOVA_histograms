@@ -1,0 +1,148 @@
+#args=c('Fig5K_1mg_kg.csv')
+args = commandArgs(trailingOnly=TRUE)
+
+data=read.csv(args[1])
+
+library(car)
+library(plotrix)
+
+y=data[,ncol(data)]
+if (length(colnames(data)[colnames(data)!="Animal.ID"])==3) # if 2 variables have to be tested
+{
+nb_variables=2
+a=aov(y~data$Zone+data$Genotype)
+}
+if (length(colnames(data)[colnames(data)!="Animal.ID"])==4) # if 3 variables have to be tested
+{
+nb_variables=3
+a=aov(y~data$Zone+data$Period+data$Genotype)
+}
+
+# Applicability of ANOVA:
+applicability=1
+model=a
+no_b=0
+if (nb_variables==2)
+{
+variance_homogeneity_pval=c(leveneTest(y~data$Zone*data$Genotype)$Pr[1])
+normality_pval=c(shapiro.test(residuals(a))$p.value)
+}
+if (nb_variables==3)
+{
+variance_homogeneity_pval=c(leveneTest(y~data$Zone*data$Period*data$Genotype)$Pr[1])
+normality_pval=c(shapiro.test(residuals(a))$p.value)
+}
+if ((variance_homogeneity_pval<0.05) | (normality_pval<0.05))
+if (min(y)>0)
+{
+if (nb_variables==2)
+{
+b=aov(log(y)~data$Zone+data$Genotype)
+variance_homogeneity_pval=append(variance_homogeneity_pval,leveneTest(log(y)~data$Zone*data$Genotype)$Pr[1])
+normality_pval=append(normality_pval,shapiro.test(residuals(b))$p.value)
+}
+if (nb_variables==3)
+{
+b=aov(log(y)~data$Zone+data$Period+data$Genotype)
+variance_homogeneity_pval=append(variance_homogeneity_pval,leveneTest(log(y)~data$Zone*data$Period*data$Genotype)$Pr[1])
+normality_pval=append(normality_pval,shapiro.test(residuals(b))$p.value)
+}
+if ((variance_homogeneity_pval[2]<0.05) | (normality_pval[2]<0.05))
+{
+applicability=0
+} else model=b
+} else
+{
+applicability=0
+no_b=1
+}
+
+rows=rownames(summary(model)[[1]])
+variables=rows[1:(length(rows)-1)]
+variables=sub(' *$','',sub('data\\$','',variables))
+outcome=c()
+if (applicability==1)
+{
+for (v in 1:length(variables))
+outcome=append(outcome,paste(variables[v],': p=',signif(summary(model)[[1]][v,5],digits=4),sep=''))
+} else
+{
+if ((is.element(min(c(variance_homogeneity_pval,normality_pval)),c(variance_homogeneity_pval[2],normality_pval[2]))) | (no_b==1))
+{
+model=a
+for (v in 1:length(variables))
+outcome=append(outcome,paste(variables[v],': p=',signif(summary(model)[[1]][v,5],digits=4),sep=''))
+outcome=append(outcome,paste('variance homogeneity p=',signif(variance_homogeneity_pval[1],digits=4),sep=''))
+outcome=append(outcome,paste('normality p=',signif(normality_pval[1],digits=4),sep=''))
+} else
+{
+model=b
+for (v in 1:length(variables))
+outcome=append(outcome,paste(variables[v],': p=',signif(summary(model)[[1]][v,5],digits=4),sep=''))
+outcome=append(outcome,paste('variance homogeneity p=',signif(variance_homogeneity_pval[2],digits=4),sep=''))
+outcome=append(outcome,paste('normality p=',signif(normality_pval[2],digits=4),sep=''))
+}
+}
+
+means=c()
+se=c()
+nb=c()
+if (nb_variables==2)
+{
+for (zone in unique(data$Zone))
+for (genotype in unique(data$Genotype))
+{
+means=append(means,mean(data[,ncol(data)][data$Zone==zone & data$Genotype==genotype]))
+se=append(se,std.error(data[,ncol(data)][data$Zone==zone & data$Genotype==genotype]))
+nb=append(nb,length(data[,ncol(data)][data$Zone==zone & data$Genotype==genotype]))
+}
+}
+if (nb_variables==3)
+{
+for (period in unique(data$Period))
+for (zone in unique(data$Zone))
+for (genotype in unique(data$Genotype))
+{
+means=append(means,mean(data[,ncol(data)][data$Zone==zone & data$Period==period & data$Genotype==genotype]))
+se=append(se,std.error(data[,ncol(data)][data$Zone==zone & data$Period==period & data$Genotype==genotype]))
+nb=append(nb,length(data[,ncol(data)][data$Zone==zone & data$Period==period & data$Genotype==genotype]))
+}
+}
+if (unique(data$Genotype)[1]=='WT')
+{
+colors=c('white','darkgrey')
+} else colors=c('darkgrey','white')
+
+y_range=c(0,1.5*max(means+se))
+outfile=sub('.csv','.pdf',args[1])
+if (nb_variables==2)
+pdf(outfile,width=6,height=6)
+if (nb_variables==3)
+pdf(outfile,width=8,height=6)
+par(mfrow=c(1,1),xpd=NA)
+barplot(means,col=colors,space=c(1,0.2),ylim=y_range,ylab=colnames(data)[ncol(data)])
+x_error_bar=c()
+if (nb_variables==2)
+{
+for (absc in -1.1+3.2*c(1:length(unique(data$Zone))))
+x_error_bar=append(x_error_bar,c(absc-0.6,absc+0.6))
+arrows(x_error_bar,means-se,x_error_bar,means+se,angle=90,code=3)
+axis(1,labels=unique(data$Zone),at=-1.1+3.2*c(1:length(unique(data$Zone))))
+}
+if (nb_variables==3)
+{
+for (absc in -1.1+3.2*c(1:(length(unique(data$Zone))*length(unique(data$Period)))))
+x_error_bar=append(x_error_bar,c(absc-0.6,absc+0.6))
+arrows(x_error_bar,means-se,x_error_bar,means+se,angle=90,code=3)
+axis(1,labels=rep(unique(data$Zone),2),at=-1.1+3.2*c(1:(length(unique(data$Zone))*length(unique(data$Period)))))
+lines(c(1,6.3),c(-0.15,-0.15))
+lines(c(7.3,12.6),c(-0.15,-0.15))
+text(c(3.65,9.95),c(-0.2,-0.2),unique(data$Period))
+}
+if (applicability==1)
+{
+legend_color='black'
+} else legend_color='grey'
+legend('topright',outcome,text.col=legend_color)
+text(x_error_bar,0,nb,pos=3)
+dev.off()
