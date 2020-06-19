@@ -146,4 +146,11 @@ Resulting files ('Site_by_site_*.csv') can be found in archive 'Data_for_Fig_S2.
 
 ## 5. ANOVA for Fig. 4 (panels A to F), Fig. 5 (panels C to K) and Fig. 6 (panels A to G):
 
-``for f in `ls Fig*.csv`;do Rscript R_commands_ANOVA_histograms $f;done``
+Categorical variables (multivariate histograms in Figures 4, 5 and 6):
+``for f in `ls Fig*.csv | grep -v Fig[56]C | grep -v Fig6A`;do Rscript R_commands_ANOVA_histograms $f;done``
+
+Time course analyses with non-linear time-dependency (Fig. 5C and 6C):
+``for f in Fig5C.csv Fig6C.csv;do Rscript R_commands_ANOVA_time_series_non_linear $f;done``
+
+Time course analysis with linear time-dependency (Fig. 6A):
+``Rscript R_commands_ANOVA_time_series_linear Fig6A.csv``
