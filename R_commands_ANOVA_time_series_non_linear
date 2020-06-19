@@ -1,0 +1,52 @@
+#args=c('Fig5C.csv')
+args = commandArgs(trailingOnly=TRUE)
+
+data=read.csv(args[1])
+
+library(plotrix)
+
+y=data[,ncol(data)][data$Time>=0]
+time_variable=-1500*(exp(-0.05*data$Time[data$Time>=0])-exp(-0.032*data$Time[data$Time>=0])) # Set by eye to match the time-dependencies of experimental data
+genotype_variable=data$Genotype[data$Time>=0]
+model=aov(y~time_variable+genotype_variable)
+
+
+rows=rownames(summary(model)[[1]])
+variables=rows[1:(length(rows)-1)]
+variables=sub(' *$','',sub('data\\$','',variables))
+outcome=c()
+for (v in 1:length(variables))
+outcome=append(outcome,paste(variables[v],': p=',signif(summary(model)[[1]][v,5],digits=4),sep=''))
+
+means=c()
+se=c()
+for (genotype in unique(data$Genotype))
+{
+add_m=c()
+add_s=c()
+for (time in unique(data$Time))
+{
+add_m=append(add_m,mean(data[,ncol(data)][data$Time==time & data$Genotype==genotype]))
+add_s=append(add_s,std.error(data[,ncol(data)][data$Time==time & data$Genotype==genotype]))
+}
+means=rbind(means,add_m)
+se=rbind(se,add_s)
+}
+
+if (unique(data$Genotype)[1]=='WT')
+{
+symbols=c(1,19)
+} else symbols=c(19,1)
+
+y_range=range(pretty(c(0,1.5*max(means+se))))
+outfile=sub('.csv','.pdf',args[1])
+pdf(outfile,width=6,height=6)
+plot(1,1,ty='n',xlab='Time (min)',ylab=colnames(data)[ncol(data)],xlim=range(data$Time)*1.1,ylim=y_range)
+for (genot in 1:2)
+{
+par(new=T)
+plot(unique(data$Time),means[genot,],pch=symbols[genot],xlim=range(data$Time)*1.1,ylim=y_range,ty='b',xlab='',ylab='',axes=F)
+arrows(unique(data$Time),means[genot,]-se[genot,],unique(data$Time),means[genot,]+se[genot,],angle=90,code=3,length=0.1)
+}
+legend('topright',outcome)
+dev.off()
