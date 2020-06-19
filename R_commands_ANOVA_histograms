@@ -1,5 +1,4 @@
-args=c('Fig6B.csv')
-#args = commandArgs(trailingOnly=TRUE)
+args = commandArgs(trailingOnly=TRUE)
 
 data=read.csv(args[1])
 
