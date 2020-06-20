@@ -144,7 +144,7 @@ Resulting files ('Site_by_site_*.csv') can be found in archive 'Data_for_Fig_S2.
 
 ``R CMD BATCH R_editing_in_development``
 
-## 5. ANOVA for Fig. 4 (panels A to F), Fig. 5 (panels C to L) and Fig. 6 (panels A to G):
+## 5. ANOVA for Fig. 4 (panels A, B and F), Fig. 5 (panels C to H and J to L) and Fig. 6 (panels A to G):
 
 Categorical variables (multivariate histograms in Figures 4, 5 and 6):
 
