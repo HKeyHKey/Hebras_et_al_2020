@@ -1,5 +1,5 @@
 # Hebras_et_al_2020
-Scripts and intermediary data for analyses published in Figures 3, 4, 5, 6 and Supplementary Figure 2 of [Hebras et al. (Elife, 2020)](https://elifesciences.org/articles/60862).
+Scripts and intermediary data for analyses published in Figures 3, 4, 5, 6 and Supplementary Figure 2 of [Hebras et al. (*Elife*, 2020)](https://elifesciences.org/articles/60862).
 
 Two series of samples were prepared and sequenced 9 months apart (see file 'Dissected_area_nomenclature_in_Figure3.txt' for the assignation of the samples shown in Figure 3 into these two series).
 
